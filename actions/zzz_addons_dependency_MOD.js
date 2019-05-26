@@ -1,7 +1,7 @@
 const AddOns = {}
 
 AddOns.author = 'ZockerNico';
-AddOns.version = 'beta';
+AddOns.version = '1.0.0';
 AddOns.description = 'This is the main addon which is needed for many other addons to work. It also overwrites many parts of your bot.js to give you access to better functions.';
 AddOns.nodeModules = new Map();
 AddOns.settings = {};
@@ -13,14 +13,14 @@ AddOns.install = function(nodeModule) {
             reject();
         }
         function checkModule() {
-            var error;
+            var result;
             try {
                 require.resolve(nodeModule);
-                error = true;
+                result = true;
             } catch(e) {
-                error = false;
+                result = false;
             }
-            return error;
+            return result;
         }
         for(var timeout = 0; timeout < 4; timeout++) {
             var check = checkModule();
@@ -29,9 +29,11 @@ AddOns.install = function(nodeModule) {
             }
             const child_process = require('child_process');
             var command = 'npm install ' + nodeModule + " --save";
-            console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons${timeout > 0 ? `(Attempt: ${timeout++})` : ``}\x1b[0m: Installation of "\x1b[1m${nodeModule}\x1b[0m" is starting, please wait...`);
-            child_process.execSync(command,{cwd: process.cwd(),stdio:[0,1,2]});
-            timeout++;
+            var attempt = timeout+1;
+            console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation${timeout > 0 ? ` (Attempt: ${attempt})` : ``} of "\x1b[1m${nodeModule}\x1b[0m" is starting, please wait...`);
+            try {
+                child_process.execSync(command,{cwd: process.cwd(),stdio:[0,1,2]});
+            } catch(e) {}
         }
         var result = checkModule();
         if(result == true) {
@@ -551,9 +553,10 @@ AddOns.loadAddOns = function(DBM) {
     //Start an Item
     DBM.Audio.playItem = function(item, id) {
         if(!DBM.Audio.connections[id]) return;
-        if(DBM.Audio.dispatchers[id]) {
+        if(!!DBM.Audio.dispatchers[id]) {
             DBM.Audio.dispatchers[id]._forceEnd = true;
             DBM.Audio.dispatchers[id].end();
+            DBM.Audio.dispatchers[id] = null;
         }
         const type = item[0];
         var volume = parseFloat(item[1].volume) || 0.5;
@@ -664,21 +667,20 @@ AddOns.loadAddOns = function(DBM) {
     }
 
     //Get Dispatcher or Connection Status
-    DBM.Audio.status = function(type, id) {
-        if(!type || !id || !DBM.Audio.connections[id] || !DBM.Audio.dispatchers[id]) {
+    DBM.Audio.status = function(type, cache) {
+        if(!type || !cache || !cache.server) {
             return false;
         };
+        var id = cache.server.id;
         switch(type.toLowerCase()) {
             case 'playing':
-                if(!DBM.Audio.dispatchers[id]) {
-                    return false;
-                } else if(DBM.Audio.dispatchers[id].paused === true) {
-                    return false;
-                } else {
-                    return true;
-                };
+                return DBM.Audio.dispatchers[id] ? (DBM.Audio.dispatchers[id].paused ? false : true) : false;
+            case 'paused':
+                return DBM.Audio.dispatchers[id] ? DBM.Audio.dispatchers[id].paused : false;
+            case 'stopped':
+                return DBM.Audio.dispatchers[id] ? false : true;
             case 'connected':
-                return true;
+                return DBM.Audio.connections[id] ? true : false;
             default:
                 return false;
         };
@@ -1056,6 +1058,12 @@ AddOns.loadFixes = function(DBM) {
 module.exports = {
     name: "DBM Add-Ons Dependency",
     section: "DBM Add-Ons",
+
+    author: AddOns.author,
+    version: AddOns.version,
+    short_description: AddOns.description,
+
+    requiresAudioLibraries: true,
 
 	subtitle: function (data) {
 		//return `Action Subtitle`;
