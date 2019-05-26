@@ -9,4 +9,4 @@ Here you will find useful mods for the programm Discord Bot Maker. Have fun!
 - Restart DBM / your bot
 
 ### Current Version
-beta
+1.0.0
