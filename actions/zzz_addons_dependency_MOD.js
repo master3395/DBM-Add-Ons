@@ -7,10 +7,10 @@ AddOns.nodeModules = new Map();
 AddOns.settings = {};
 
 //NodeModule Installer
-AddOns.install = function(nodeModule) {
+AddOns.install = function(nodeModule, forceInstallation) {
     return new Promise((resolve, reject) => {
         if(!nodeModule) {
-            reject();
+            reject(nodeModule);
         }
         function checkModule() {
             var result;
@@ -22,73 +22,64 @@ AddOns.install = function(nodeModule) {
             }
             return result;
         }
-        for(var timeout = 0; timeout < 4; timeout++) {
-            var check = checkModule();
-            if(check === true) {
-                break;
+        var forceInstallationCheck = checkModule();
+        if(forceInstallation == true && forceInstallationCheck == true) {
+            //Force installation / update
+            for(var timeout = 0; timeout < 3; timeout++) {
+                const child_process = require('child_process');
+                var command = 'npm install ' + nodeModule + " --save";
+                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Update${timeout > 0 ? ` (Attempt: ${timeout+1})` : ``} of "\x1b[1m${nodeModule}\x1b[0m" is starting, please wait...`);
+                try {
+                    child_process.execSync(command, {cwd: process.cwd(), stdio:[0,1,2]});
+                } catch(e) {}
+                var check = checkModule();
+                if(check === true) {
+                    break;
+                }
             }
-            const child_process = require('child_process');
-            var command = 'npm install ' + nodeModule + " --save";
-            var attempt = timeout+1;
-            console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation${timeout > 0 ? ` (Attempt: ${attempt})` : ``} of "\x1b[1m${nodeModule}\x1b[0m" is starting, please wait...`);
-            try {
-                child_process.execSync(command,{cwd: process.cwd(),stdio:[0,1,2]});
-            } catch(e) {}
-        }
-        var result = checkModule();
-        if(result == true) {
-            this.nodeModules.set(`${nodeModule}`, require(nodeModule));
-            if(timeout !== 0) {
-                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation of "\x1b[1m${nodeModule}\x1b[0m" is finished!`);
-            }
-            resolve(nodeModule);
-        } else {
-            console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation of "\x1b[1m${nodeModule}\x1b[0m" failed! Please run "\x1b[1mnpm install ${nodeModule} --save\x1b[0m" manually.`);
-            reject();
-        }
-	});
-}
-
-//NodeModule Updater
-AddOns.update = function(nodeModule) {
-    return new Promise((resolve, reject) => {
-        if(!nodeModule) {
-            reject();
-        }
-        function checkModule() {
-            var error;
-            try {
-                require.resolve(nodeModule);
-                error = undefined
-            } catch(e) {
-                error = e;
-                error = true;
-            }
-            if(error !== undefined) {
-                return false;
+            var result = checkModule();
+            if(result == true) {
+                this.nodeModules.set(`${nodeModule}`, require(nodeModule));
+                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Update of "\x1b[1m${nodeModule}\x1b[0m" is finished!`);
+                resolve(nodeModule);
             } else {
-                return true;
+                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Update of "\x1b[1m${nodeModule}\x1b[0m" failed! Please run "\x1b[1mnpm install ${nodeModule} --save\x1b[0m" manually.`);
+                reject(nodeModule);
             }
-        }
-        var result = checkModule();
-        if(result == true) {
-            return this.install(nodeModule);
+
         } else {
-            this.install(nodeModule);
-            for(var timeout = 0; timeout < 4; timeout++) {
+            //Start installation only if needed
+            for(var timeout = 0; timeout < 3; timeout++) {
                 var check = checkModule();
                 if(check === true) {
                     break;
                 }
                 const child_process = require('child_process');
                 var command = 'npm install ' + nodeModule + " --save";
-                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons${timeout > 0 ? `(Attempt: ${timeout++})` : ``}\x1b[0m: Update of "\x1b[1m${nodeModule}\x1b[0m" is starting, please wait...`);
-                child_process.execSync(command,{cwd: process.cwd(),stdio:[0,1,2]});
-                timeout++;
+                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation${timeout > 0 ? ` (Attempt: ${timeout+1})` : ``} of "\x1b[1m${nodeModule}\x1b[0m" is starting, please wait...`);
+                try {
+                    child_process.execSync(command, {cwd: process.cwd(), stdio:[0,1,2]});
+                } catch(e) {}
             }
-            return this.install(nodeModule);
+            var result = checkModule();
+            if(result == true) {
+                this.nodeModules.set(`${nodeModule}`, require(nodeModule));
+                if(timeout !== 0) {
+                    console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation of "\x1b[1m${nodeModule}\x1b[0m" is finished!`);
+                }
+                resolve(nodeModule);
+            } else {
+                console.log(`\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Installation of "\x1b[1m${nodeModule}\x1b[0m" failed! Please run "\x1b[1mnpm install ${nodeModule} --save\x1b[0m" manually.`);
+                reject(nodeModule);
+            }
         }
-    });
+	});
+}
+
+//NodeModule Updater
+AddOns.update = function(nodeModule) {
+    this.install(nodeModule, true);
+    return this.nodeModules.get(nodeModule);
 }
 
 //Custom Require Function
@@ -468,7 +459,7 @@ AddOns.loadAddOns = function(DBM) {
         DBM.Audio.queue[id] = [];
     };
 
-    //Get next Item
+    //Get the next Item
     DBM.Audio.playNext = function(id, forceSkip) {
         if(!DBM.Audio.connections[id]) return;
         if(!DBM.Audio.dispatchers[id] || !!forceSkip) {
@@ -520,24 +511,27 @@ AddOns.loadAddOns = function(DBM) {
                 var timeout = 0;
                 var itemList = [];
                 while(itemList.length == 0 && timeout < 10) {
+                    //Get the most played AutoPlay Data
                     itemList = DBM.Audio.topAutoPlay(DBM.Audio.autoplaydata.length/10);
                     timeout++;
                 };
                 setTimeout(function() {
                     if(timeout >= 9) {
+                        //Get any existing AutoPlay Data
                         itemList = DBM.Audio.topAutoPlay(0);
                     };
                     var error;
                     try {
+                        //Use an random Item
                         var autoItem = itemList[Math.round(Math.random(0)*itemList.length)];
                         var item = ['yt', {seek: 0, bitrate: 'auto', passes: 1, volume: 0.5}, autoItem.url];
                     } catch(e) {error = e};
                     if(error) {
-                        DBM.Audio.connections[id].disconnect();
-                        return false;
+                        //Not AutoPlay Data existing
+                        DBM.Audio.autoplay[id] = false;
+                        DBM.Audio.playNext(id);
                     } else {
                         DBM.Audio.playItem(item, id);
-                        return true;
                     };
                 }, 500);
             } else if(DBM.Audio.queue[id].length > 0) {
