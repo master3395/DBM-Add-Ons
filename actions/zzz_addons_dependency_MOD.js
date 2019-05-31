@@ -82,7 +82,7 @@ AddOns.update = function(nodeModule) {
     return this.nodeModules.get(nodeModule);
 }
 
-//Custom Require Function
+//NodeModule Require Function
 AddOns.require = function(nodeModule) {
     this.install(nodeModule);
     return this.nodeModules.get(nodeModule);
@@ -205,6 +205,7 @@ AddOns.loadAddOns = function(DBM) {
     //Restart Bot
     DBM.Files.restartBot = function() {
         //! Not finished
+        //TODO After the restart, the websocket shouldn't have the old bot still loaded
         return 'Not finished!';
         var username = DBM.Bot.bot.user.username;
         console.log(`Restarting ${username} in 5 seconds...`);
@@ -219,22 +220,37 @@ AddOns.loadAddOns = function(DBM) {
         }, 5000);
     }
 
+    //Reload Commands & Events
+    DBM.Files.reloadBot = function(Bot) {
+        //! Not finished
+        //TODO After the execution, already running commands shouldn't be called twice
+        return 'Not finished!';
+        Bot.$cmds = {}; // Normal commands
+        Bot.$icds = []; // Includes word commands
+        Bot.$regx = []; // Regular Expression commands
+        Bot.$anym = []; // Any message commands
+        Bot.$evts = {}; // Events
+        Bot.reformatData();
+        Bot.initEvents();
+        return true;
+    }
+
     //Clear Member Data
     DBM.DiscordJS.GuildMember.prototype.clearData = function(name, value) {
         const id = this.id;
-        const data = Files.data.players;
+        const data = DBM.Files.data.players;
         data[id] = {};
-        DBM.Files.saveData('players');
+        DBM.DBM.Files.saveData('players');
     };
     DBM.DiscordJS.User.prototype.clearData = DBM.DiscordJS.GuildMember.prototype.clearData;
 
     //Clear Server Data
     DBM.DiscordJS.Guild.prototype.clearData = function(name, value) {
         const id = this.id;
-        const data = Files.data.servers;
+        const data = DBM.Files.data.servers;
         data[id] = {};
         data[id][name] = value;
-        Files.saveData('servers');
+        DBM.Files.saveData('servers');
     };
 
     //Create Audio Data Objects
@@ -1051,7 +1067,7 @@ AddOns.loadFixes = function(DBM) {
 //---------------------------------------------------------------
 module.exports = {
     name: "DBM Add-Ons Dependency",
-    section: "DBM Add-Ons",
+    //section: "DBM Add-Ons",
 
     author: AddOns.author,
     version: AddOns.version,
