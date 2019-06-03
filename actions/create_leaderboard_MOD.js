@@ -29,7 +29,7 @@ module.exports = {
 	version: "1.0.0",
 
 	// A short description for this mod
-	short_description: "This mod will sort members by their data",
+	short_description: "This mod will sort members / servers by their data",
 
 	//---------------------------------------------------------------------
 	
@@ -40,8 +40,8 @@ module.exports = {
 	//---------------------------------------------------------------------
 
 	subtitle: function (data) {
-		const list = ['Current Server', 'Temp Variable', 'Server Variable', 'Global Variable', 'All Bot Servers'];
-		return `${list[parseInt(data.server)]}: Create User Leaderboard by "${data.data1}" & "${data.data2}"`;
+		const list = ['Server Members', 'All Bot Users', 'All Bot Servers', 'Temp Variable', 'Server Variable', 'Global Variable'];
+		return `${list[parseInt(data.list)]}: Create Leaderboard of "${data.data1}" & "${data.data2}"`;
 	},
 
 	//---------------------------------------------------------------------
@@ -65,7 +65,7 @@ module.exports = {
 	// are also the names of the fields stored in the action's JSON data.
 	//---------------------------------------------------------------------
 
-	fields: ["server", "varName", "data1", "data2", "reverse", "limit", "skipdata", "storagetype", "content", "storage", "varName2"],
+	fields: ["list", "varName", "data1", "data2", "reverse", "limit", "skipdata", "storagetype", "content", "storage", "varName2"],
 
 	//---------------------------------------------------------------------
 	// Command HTML
@@ -92,10 +92,14 @@ module.exports = {
 			</p>
 		</div><br>
 		<div style="float: left; width: 35%;">
-			Source Server:<br>
-			<select id="server" class="round" onchange="glob.onChange(this, 'varNameContainer')">
-				${data.servers[isEvent ? 1 : 0]}
-				<option value="4">All Bot Servers</option>
+			Source List:<br>
+			<select id="list" class="round" onchange="glob.onChange(this, 'varNameContainer')">
+				<option value="0">Server Members</option>
+				<option value="1">All Bot Users</option>
+				<option value="2">All Bot Servers</option>
+				<option value="3">Temp Variable</option>
+				<option value="4">Server Variable</option>
+				<option value="5">Global Variable</option>
 			</select>
 		</div>
 		<div id="varNameContainer" style="display: none; float: right; width: 60%;">
@@ -109,7 +113,7 @@ module.exports = {
 			</div>
 			<div style="display: table-cell;">
 				Alternative Data Name:<br>
-				<input id="data2" class="round" type="text">
+				<input id="data2" class="round" type="text" placeholder="Optional">
 			</div>
 			<div style="display: table-cell;">
 				Reverse:<br>
@@ -143,7 +147,7 @@ module.exports = {
 		</div><br>
 		<div style="float: left; width: 104%; padding-top: 8px;">
 			Leaderboard Content:<br>
-			<input id="content" class="round" type="text" value="\${position}. \${user} - Level: \${data1} XP: \${data2}"><br>
+			<input id="content" class="round" type="text" placeholder="\${position}. \${item} - Level: \${data1} XP: \${data2}" value="\${position}. \${item} - Level: \${data1} XP: \${data2}"><br>
 		</div>
 		<div style="float: left; width: 35%;  padding-top: 8px;">
 			Store In:<br>
@@ -161,7 +165,7 @@ module.exports = {
 			</h3>
 			<p>
 				Leaderboard Position: \${position}<br>
-				Current User: \${user}<br>
+				Current Item: \${item}<br>
 				Data Value: \${data1}<br>
 				Alternative Data Value: \${data2}<br>
 			</p>
@@ -182,19 +186,20 @@ module.exports = {
 
 		glob.onChange = function() {
 			var varNameContainer = document.getElementById('varNameContainer');
-			switch(parseInt(document.getElementById('server').value)) {
+			switch(parseInt(document.getElementById('list').value)) {
 				case 0:
-				case 4:
-					varNameContainer.style.display = 'none';
-					break;
 				case 1:
 				case 2:
+					varNameContainer.style.display = 'none';
+					break;
 				case 3:
+				case 4:
+				case 5:
 					varNameContainer.style.display = null;
 					break;
 			}
 		}
-		glob.variableChange(document.getElementById('storage'), 'varNameContainer2');
+		glob.variableChange(document.getElementById('storage'), 'varNameContainer3');
 	},
 
 	//---------------------------------------------------------------------
@@ -209,7 +214,6 @@ module.exports = {
 		const data = cache.actions[cache.index];
 		const AddOns = this.getAddOns();
 		const arraySort = AddOns.require('array-sort');
-		const server = parseInt(data.server);
 		const varName = this.evalMessage(data.varName, cache);
 		const data1 = this.evalMessage(data.data1, cache);
 		const data2 = this.evalMessage(data.data2, cache);
@@ -217,39 +221,67 @@ module.exports = {
 		const limit = !parseInt(this.evalMessage(data.limit, cache)) ? Number.MAX_VALUE : parseInt(data.limit);
 		const skipdata = parseInt(data.skipdata);
 		const content = data.content;
-		var users;
+		var datas;
 		var list = [];
 		var results = [];
 		var result = [];
 
-		if(server == 4) {
-			users = this.getDBM().Bot.bot.users.array();
-		} else {
-			var targetServer = this.getServer(server, varName, cache);
-			if(!targetServer) {
-				return this.callNextAction(cache);
-			} else {
-				users = targetServer.members.array();
+		if(data1 == '' || data1 == undefined) {
+			return console.log(`${this.getErrorString}\nMissing Data Name!`);
+		}
+		if(skipdata == 2 || skipdata == 3) {
+			if(data2 == '' || data2 == undefined) {
+				return console.log(`${this.getErrorString}\nMissing Alternative Data Name!`);
 			}
 		}
 
-		for(var loop = 0; loop < users.length; loop++) {
+		switch(parseInt(data.list)) {
+			default:
+			case 0:
+				datas = this.getList(0, varName, cache);
+				break;
+			case 1:
+				datas = this.getDBM().Bot.bot.users.array();
+			case 2:
+				datas = this.getDBM().Bot.bot.guilds.array();
+				break;
+			case 3:
+				datas = this.getList(7, varName, cache);
+				break;
+			case 4:
+				datas = this.getList(8, varName, cache);
+				break;
+			case 5:
+				datas = this.getList(9, varName, cache);
+				break;
+		}
+
+		try {
+			datas[0];
+		} catch(e) {
+			if(e) return console.log(`${this.getErrorString}\nProvided variable wasn't a list!`);
+		}
+		if(datas.length > 0) {} else {
+			return console.log(`${this.getErrorString}\nProvided list was empty!`);
+		}
+
+		for(var loop = 0; loop < datas.length; loop++) {
 			var check;
 			switch(skipdata) {
 				case 1:
-					check = (users[loop].data(data1, 'nodata1existing') === 'nodata1existing' ? false : true);
+					check = (datas[loop].data(data1, 'nodata1existing') === 'nodata1existing' ? false : true);
 					break;
 				case 2:
-					check = (users[loop].data(data2, 'nodata2existing') === 'nodata2existing' ? false : true);
+					check = (datas[loop].data(data2, 'nodata2existing') === 'nodata2existing' ? false : true);
 					break;
 				case 3:
-					check = (users[loop].data(data1, 'nodata1existing') === 'nodata1existing' || users[loop].data(data2, 'nodata2existing') === 'nodata2existing' ? false : true);
+					check = (datas[loop].data(data1, 'nodata1existing') === 'nodata1existing' || datas[loop].data(data2, 'nodata2existing') === 'nodata2existing' ? false : true);
 					break;
 				default:
 					check = true;
 			}
 			if(check) {
-				list.push({'user': (users[loop].user ? users[loop].user : users[loop]), 'data1': users[loop].data(data1, 0), 'data2': users[loop].data(data2, 0)});
+				list.push({'item': (datas[loop].user ? datas[loop].user : datas[loop]), 'data1': datas[loop].data(data1, 0), 'data2': datas[loop].data(data2, 0)});
 			}
 		}
 
@@ -270,7 +302,7 @@ module.exports = {
 		for(var loop = 0; loop < results.length; loop++) {
 			async function insertData(data, res, text, pos) {
 				const position = pos+1;
-				const user = data[loop].user;
+				const item = data[loop].item;
 				const data1 = data[loop].data1;
 				const data2 = data[loop].data2;
 				var content;
@@ -279,11 +311,11 @@ module.exports = {
 					try {
 						content = eval('`' + text.replace(/`/g,'\\`').replace(/\${text}/g, '').replace(/\${pos}/g, '').replace(/\${data}/g, '').replace(/\${res}/g, '') + '`');
 					} catch(e) {
-						content = user;
+						content = item;
 					}
 					res.push(content);
 				} else {
-					res.push(user);
+					res.push(item);
 				}
 			}
 			if(loop < limit) {
