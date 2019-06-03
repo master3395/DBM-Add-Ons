@@ -7,6 +7,7 @@ AddOns.nodeModules = new Map();
 AddOns.settings = {};
 
 //NodeModule Installer
+//---------------------------------------------------------------
 AddOns.install = function(nodeModule, forceInstallation) {
     return new Promise((resolve, reject) => {
         if(!nodeModule) {
@@ -75,20 +76,26 @@ AddOns.install = function(nodeModule, forceInstallation) {
         }
 	});
 }
+//---------------------------------------------------------------
 
 //NodeModule Updater
+//---------------------------------------------------------------
 AddOns.update = function(nodeModule) {
     this.install(nodeModule, true);
     return this.nodeModules.get(nodeModule);
 }
+//---------------------------------------------------------------
 
 //NodeModule Require Function
+//---------------------------------------------------------------
 AddOns.require = function(nodeModule) {
     this.install(nodeModule);
     return this.nodeModules.get(nodeModule);
 }
+//---------------------------------------------------------------
 
 //Add-Ons Loader
+//---------------------------------------------------------------
 AddOns.loadAddOns = function(DBM) {
     //AUTHOR
     //This DBM AddOns bot.js mod is made by ZockerNico.
@@ -647,7 +654,7 @@ AddOns.loadAddOns = function(DBM) {
         } else {
             const ytinfo = DBM.Audio.ytinfo;
             ytinfo(`${url.slice(32, 43)}`).then(video => {
-                if(video.duration === 0 && this.settings.debugYouTubeLivestreams == 'true') {
+                if(video.duration === 0 && this.settings.fixYouTubeLivestreams == 'true') {
                     //YouTube Livestream
                     if(!DBM.Audio.ytdl_discord) return false;
                     if(parseFloat(DBM.DiscordJS.version) >= 1.4) {} else {this.update('discord.js')};
@@ -672,7 +679,7 @@ AddOns.loadAddOns = function(DBM) {
         }
     };
 
-    if(this.settings.debugYouTubeLivestreams == 'true') {
+    if(this.settings.fixYouTubeLivestreams == 'true') {
         console.log('\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: YouTube Livestream Debug loaded!');
     }
 
@@ -699,369 +706,7 @@ AddOns.loadAddOns = function(DBM) {
     console.log('\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Mods loaded!');
     return true;
 }
-
-AddOns.loadFixes = function(DBM) {
-    //AUTHOR
-    //This DBM AddOns bot.js fix is made by ZockerNico.
-    //Do not give it out as your work or you get in trouble with me! xD
-
-    //WARNING
-    //Do not execute this function unless you know, what you're doing!
-    //If your bot is already running, this may will reset it's current actions.
-    
-    if(!DBM) {
-        return false;
-    }
-
-    //Store Command Params
-    //Fixed: Multible Params
-    DBM.Actions['Store Command Params'] = function(cache) {
-        const data = cache.actions[cache.index];
-        const msg = cache.msg;
-        const infoType = parseInt(data.info);
-        const index = parseInt(this.evalMessage(data.infoIndex, cache));
-        const separator = this.getDBM().Files.data.settings.separator || '\\s+';
-        let source;
-        switch(infoType) {
-            case 0:
-                if(msg && msg.content) {
-                    const params = msg.content.split(new RegExp(separator));
-                    source = params[index] || '';
-                }
-                break;
-            case 1:
-                if(msg && msg.content) {
-                    const params = msg.content.split(new RegExp(separator));
-                    if(params.length >= index) {
-                        source = params.slice(index).join(' ');
-                    }
-                }
-                break;
-            case 2:
-                if(msg && msg.mentions && msg.mentions.members) {
-                    const members = msg.mentions.members.array();
-                    if(members[index - 1]) {
-                        source = members[index - 1];
-                    }
-                }
-                break;
-            case 3:
-                if(msg && msg.mentions && msg.mentions.roles) {
-                    const roles = msg.mentions.roles.array();
-                    if(roles[index - 1]) {
-                        source = roles[index - 1];
-                    }
-                }
-                break
-            case 4:
-                if(msg && msg.mentions && msg.mentions.channels) {
-                    const channels = msg.mentions.channels.array();
-                    if(channels[index - 1]) {
-                        source = channels[index - 1];
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-        if(source) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(source, storage, varName, cache);
-        }
-        this.callNextAction(cache);
-    }
-
-    //Remove Item from List
-    //Fixed: Variables in the Position field
-    DBM.Actions['Remove Item from List'] = function(cache) {
-        const data = cache.actions[cache.index];
-        const storage = parseInt(data.storage);
-        const varName = this.evalMessage(data.varName, cache);
-        const list = this.getVariable(storage, varName, cache);
-    
-        const type = parseInt(data.removeType);
-    
-        let result = null;
-        switch(type) {
-            case 0:
-                result = list.pop();
-                break;
-            case 1:
-                result = list.shift();
-                break;
-            case 2:
-                const position = parseInt(this.evalMessage(data.position, cache));
-                if(position < 0) {
-                    result = list.shift();
-                } else if(position >= list.length) {
-                    result = list.pop();
-                } else {
-                    result = list[position];
-                    list.splice(position, 1);
-                }
-                break;
-        }
-    
-        if(result) {
-            const varName2 = this.evalMessage(data.varName2, cache);
-            const storage2 = parseInt(data.storage2);
-            this.storeValue(result, storage2, varName2, cache);
-        }
-    
-        this.callNextAction(cache);
-    }
-
-    //Set Member Voice Channel
-    //Fixed: Wrong variables
-    DBM.Actions['Set Member Voice Channel'] = function(cache) {
-        const data = cache.actions[cache.index];
-        const storage = parseInt(data.member);
-        const varName = this.evalMessage(data.varName, cache);
-        const member = this.getMember(storage, varName, cache);
-    
-        const storage2 = parseInt(data.channel);
-        const varName2 = this.evalMessage(data.varName2, cache);
-        const channel = this.getVoiceChannel(storage2, varName2, cache);
-    
-        if(Array.isArray(member)) {
-            this.callListFunc(member, 'setVoiceChannel', [channel]).then(function() {
-                this.callNextAction(cache);
-            }.bind(this));
-        } else if(member && member.setVoiceChannel) {
-            member.setVoiceChannel(channel).then(function() {
-                this.callNextAction(cache);
-            }.bind(this)).catch(this.displayError.bind(this, data, cache));
-        } else {
-            this.callNextAction(cache);
-        }
-    }
-
-    //Find Channel
-    //Fixed: Collection#find issue
-    DBM.Actions['Find Channel'] = function(cache) {
-        const server = cache.server;
-        if(!server || !server.channels) {
-            this.callNextAction(cache);
-            return;
-        }
-        const data = cache.actions[cache.index];
-        const info = parseInt(data.info);
-        const find = this.evalMessage(data.find, cache);
-        const channels = server.channels.filter(channel => channel.type == 'text' );
-        let result;
-        switch(info) {
-            case 0:
-                result = channels.find(channel => channel.id == find);
-                break;
-            case 1:
-                result = channels.find(channel => channel.name == find);
-                break;
-            case 2:
-                result = channels.find(channel => channel.topic == find);
-                break;
-            default:
-                break;
-        }
-        if(result !== undefined) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(result, storage, varName, cache);
-            this.callNextAction(cache);
-        } else {
-            this.callNextAction(cache);
-        }
-    }
-
-    //Find Voice Channel
-    //Fixed: Collection#find issue
-    DBM.Actions['Find Voice Channel'] = function(cache) {
-        const server = cache.server;
-        if(!server || !server.channels) {
-            this.callNextAction(cache);
-            return;
-        }
-        const data = cache.actions[cache.index];
-        const info = parseInt(data.info);
-        const find = this.evalMessage(data.find, cache);
-        const channels = server.channels.filter(channel => channel.type == 'voice');
-        let result;
-        switch(info) {
-            case 0:
-                result = channels.find(channel => channel.id == find);
-                break;
-            case 1:
-                result = channels.find(channel => channel.name == find);
-                break;
-            case 2:
-                result = channels.find(channel => channel.position == find);
-                break;
-            case 3:
-                result = channels.find(channel => channel.userLimit == find);
-                break;
-            case 4:
-                result = channels.find(channel => channel.bitrate == find);
-                break;
-            default:
-                break;
-        }
-        if(result !== undefined) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(result, storage, varName, cache);
-            this.callNextAction(cache);
-        } else {
-            this.callNextAction(cache);
-        }
-    }
-
-    //Find Custom Emoji
-    //Fixed: Collection#find issue
-    DBM.Actions['Find Custom Emoji'] = function(cache) {
-        const data = cache.actions[cache.index];
-        const bot = this.getDBM().Bot.bot;
-        const info = parseInt(data.info);
-        const find = this.evalMessage(data.find, cache);
-        let result;
-        switch(info) {
-            case 0:
-                result = bot.emojis.find(emoji => emoji.id == find);
-                break;
-            case 1:
-                result = bot.emojis.find(emoji => emoji.name == find);
-                break;
-            default:
-                break;
-        }
-        if(result !== undefined) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(result, storage, varName, cache);
-        }
-        this.callNextAction(cache);
-    }
-
-    //Find Member
-    //Fixed: Collection#find issue
-    DBM.Actions['Find Member'] = function(cache) {
-        const server = cache.server;
-        if(!server || !server.members) {
-            this.callNextAction(cache);
-            return;
-        }
-        const data = cache.actions[cache.index];
-        const info = parseInt(data.info);
-        const find = this.evalMessage(data.find, cache);
-        let result;
-        switch(info) {
-            case 0:
-                result = server.members.find(member => member.id == find);
-                break;
-            case 1:
-                result = server.members.find(member => (member.user ? member.user.username == find : member.username == find))
-                break;
-            case 2:
-                result = server.members.find(member => member.displayName == find);
-                break;
-            case 3:
-                result = server.members.find(member => member.displayColor == find);
-                break;
-            default:
-                break;
-        }
-        if(result !== undefined) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(result, storage, varName, cache);
-            this.callNextAction(cache);
-        } else {
-            this.callNextAction(cache);
-        }
-    }
-
-    //Find Role
-    //Fixed: Collection#find issue
-    DBM.Actions['Find Role'] = function(cache) {
-        const server = cache.server;
-        if(!server || !server.roles) {
-            this.callNextAction(cache);
-            return;
-        }
-        const data = cache.actions[cache.index];
-        const info = parseInt(data.info);
-        const find = this.evalMessage(data.find, cache);
-        let result;
-        switch(info) {
-            case 0:
-                result = server.roles.find(role => role.id == find);
-                break;
-            case 1:
-                result = server.roles.find(role => role.name == find);
-                break;
-            case 2:
-                result = server.roles.find(role => role.color == find);
-                break;
-            default:
-                break;
-        }
-        if(result !== undefined) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(result, storage, varName, cache);
-        }
-        this.callNextAction(cache);
-    }
-
-    //Find Server
-    //Fixed: Collection#find issue
-    DBM.Actions['Find Server'] = function(cache) {
-        const bot = this.getDBM().Bot.bot;
-        const servers = bot.guilds;
-        const data = cache.actions[cache.index];
-        const info = parseInt(data.info);
-        const find = this.evalMessage(data.find, cache);
-        let result;
-        switch(info) {
-            case 0:
-                result = servers.find(server => server.id == find);
-                break;
-            case 1:
-                result = servers.find(server => server.name == find);
-                break;
-            case 2:
-                result = servers.find(server => server.nameAcronym == find);
-                break;
-            case 3:
-                result = servers.find(server => server.memberCount == parseInt(find));
-                break;
-            case 4:
-                result = servers.find(server => server.region == find);
-                break;
-            case 5:
-                result = servers.find(server => server.ownerID == find);
-                break;
-            case 6:
-                result = servers.find(server => server.verificationLevel == parseInt(find));
-                break;
-            case 7:
-                result = servers.find(server => server.available == Boolean(find === 'true'));
-                break;
-            default:
-                break;
-        }
-        if(result !== undefined) {
-            const storage = parseInt(data.storage);
-            const varName = this.evalMessage(data.varName, cache);
-            this.storeValue(result, storage, varName, cache);
-            this.callNextAction(cache);
-        } else {
-            this.callNextAction(cache);
-        }
-    }
-
-    console.log('\x1b[1m\x1b[4m\x1b[32mDBM Add-Ons\x1b[0m: Fixes loaded!');
-    return true;
-}
+//---------------------------------------------------------------
 
 //DBM Section
 //---------------------------------------------------------------
@@ -1109,11 +754,16 @@ module.exports = {
             var data;
             try {
                 data = JSON.parse(require('fs').readFileSync('./data/addons_settings.json'));
+                if(data.loadAddOns != 'true' && data.loadAddOns != 'false') {
+                    data.loadAddOns = 'true';
+                }
+                if(data.fixYouTubeLivestreams != 'true' && data.fixYouTubeLivestreams != 'false') {
+                    data.fixYouTubeLivestreams = 'true';
+                }
             } catch(e) {
                 data = {
                     "loadAddOns": "true",
-                    "loadFixes": "true",
-                    "debugYouTubeLivestreams": "true"
+                    "fixYouTubeLivestreams": "true"
                 };
                 require('fs').writeFile('./data/addons_settings.json', `${JSON.stringify(data)}`, function(error) {
                     if(error) console.error(error);
@@ -1122,9 +772,6 @@ module.exports = {
             DBM.Actions.getAddOns().settings = data;
             if(data.loadAddOns == 'true') {
                 DBM.Actions.getAddOns().loadAddOns(DBM);
-            }
-            if(data.loadFixes == 'true') {
-                DBM.Actions.getAddOns().loadFixes(DBM);
             }
             return true;
         }
