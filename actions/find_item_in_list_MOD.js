@@ -44,7 +44,7 @@ module.exports = {
 
 	subtitle: function(data) {
 		const list = ['Server Members', 'Server Channels', 'Server Roles', 'Server Emojis', 'All Bot Servers', 'Mentioned User Roles', 'Command Author Roles', 'Temp Variable', 'Server Variable', 'Global Variable'];
-		return `Find "${data.item}" in ${list[parseInt(data.list)]}`;
+		return `Find "${data.item}" in ${list[parseInt(data.storage)]}`;
 	},
 
 	//---------------------------------------------------------------------
