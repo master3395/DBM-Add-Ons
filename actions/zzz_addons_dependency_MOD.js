@@ -752,19 +752,24 @@ module.exports = {
         }
         DBM.initAddOns = function() {
             var data;
+            var check = false;
             try {
                 data = JSON.parse(require('fs').readFileSync('./data/addons_settings.json'));
                 if(data.loadAddOns != 'true' && data.loadAddOns != 'false') {
                     data.loadAddOns = 'true';
+                    check = true;
                 }
                 if(data.fixYouTubeLivestreams != 'true' && data.fixYouTubeLivestreams != 'false') {
                     data.fixYouTubeLivestreams = 'true';
+                    check = true;
                 }
             } catch(e) {
                 data = {
                     "loadAddOns": "true",
                     "fixYouTubeLivestreams": "true"
                 };
+            }
+            if(check) {
                 require('fs').writeFile('./data/addons_settings.json', `${JSON.stringify(data)}`, function(error) {
                     if(error) console.error(error);
                 });
