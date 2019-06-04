@@ -348,7 +348,7 @@ module.exports = {
 	action: function (cache) {
 		const data = cache.actions[cache.index];
 		const _this = this; //This is needed sometimes.
-		const AddOns = this.getAddOns(); //As always.
+		const AddOns = this.getAddOns();
 		const input = this.evalMessage(data.input, cache);//URL or Keywords
 		const apikey = this.evalMessage(data.apikey, cache);//Api Key
 		const type = parseInt(data.type);//0: Video | 1: Playlist
