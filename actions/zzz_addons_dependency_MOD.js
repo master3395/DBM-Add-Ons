@@ -216,6 +216,10 @@ module.exports = {
     mod: function(DBM) {
 
         if(AddOns.settings.loadAddOns == 'true') {
+            
+            DBM.Actions.getAddOns = function() {
+                return AddOns();
+            }
 
             if(AddOns.settings.secureLoad !== 'true') {
                 //Require Modules
