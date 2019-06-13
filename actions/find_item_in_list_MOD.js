@@ -165,11 +165,10 @@ module.exports = {
 		}
 
 		if(result !== undefined) {
-		const storage2 = parseInt(data.storage2);
-		const varName2 = this.evalMessage(data.varName2, cache);
-		this.storeValue(result, storage2, varName2, cache);
+			const storage2 = parseInt(data.storage2);
+			const varName2 = this.evalMessage(data.varName2, cache);
+			this.storeValue(result, storage2, varName2, cache);
 		}
-
 		this.callNextAction(cache);
 	},
 

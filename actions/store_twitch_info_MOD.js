@@ -14,7 +14,7 @@ module.exports = {
 	// This is the section the action will fall into.
 	//---------------------------------------------------------------------
 
-	section: "Other Stuff",
+	section: "API Interacting",
 
 	//---------------------------------------------------------------------
 	// Action Subtitle
@@ -214,7 +214,7 @@ module.exports = {
 
 	html: function (isEvent, data) {
 		return `
-	<div id ="wrexdiv" style="width: 550px; height: 350px; overflow-y: scroll; overflow-x: hidden;">
+	<div style="width: 550px; height: 350px; overflow-y: scroll; overflow-x: hidden;">
 		<div>
 			<p>
 				Made by ${this.author}.<br>

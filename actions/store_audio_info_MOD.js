@@ -52,7 +52,7 @@ subtitle: function(data) {
 // are also the names of the fields stored in the action's JSON data.
 //---------------------------------------------------------------------
 
-fields: ["action"],
+fields: ["action", "storage", "varName"],
 
 //---------------------------------------------------------------------
 // Command HTML

@@ -198,21 +198,21 @@ module.exports = {
 
 		if(typeof(variable) != 'object') {
 			return console.log('Please choose a valid list or object to inspect!');
-		};
+		}
 
 		try {
-			var result = util.inspect(variable,  { depth: (depth > 0 ? depth : 0) });
+			var result = util.inspect(variable, {depth: (depth > 0 ? depth : 0)});
 		} catch(error) {
 			if(error) {
-				console.error(error)
-			};
-		};
+				console.error(error);
+			}
+		}
 
-		if (result !== undefined) {
+		if(result !== undefined) {
 			const storage2 = parseInt(data.storage2);
 			const varName2 = this.evalMessage(data.varName2, cache);
 			this.storeValue(result, storage2, varName2, cache);
-		};
+		}
 		this.callNextAction(cache);
 	},
 
