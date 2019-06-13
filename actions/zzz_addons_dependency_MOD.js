@@ -207,7 +207,7 @@ module.exports = {
         const data = cache.actions[cache.index];
 
         if(data.module != "" && data.module != undefined) {
-            var result = this.getAddOns().update(data.module, (data.forceInstallation == "true" ? true : false));
+            var result = this.getAddOns().update(this.evalMessage(data.module, cache), (data.forceInstallation == "true" ? true : false));
         }
         this.storeValue((parseInt(result) === NaN ? 0 : parseInt(result)), data.storage, data.varName, cache);
         this.callNextAction(cache);
@@ -218,7 +218,7 @@ module.exports = {
         if(AddOns.settings.loadAddOns == 'true') {
             
             DBM.Actions.getAddOns = function() {
-                return AddOns();
+                return AddOns;
             }
 
             if(AddOns.settings.secureLoad !== 'true') {
