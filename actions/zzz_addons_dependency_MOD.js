@@ -205,11 +205,20 @@ module.exports = {
 
     action: function(cache) {
         const data = cache.actions[cache.index];
+        const AddOns = this.getAddOns();
+        const nodeModule = this.evalMessage(data.module, cache);
 
         if(data.module != "" && data.module != undefined) {
-            var result = this.getAddOns().update(this.evalMessage(data.module, cache), (data.forceInstallation == "true" ? true : false));
+            if(data.forceInstallation == "true") {
+                var result = AddOns.update(nodeModule);
+            } else {
+                var result = AddOns.require(nodeModule);
+            }
         }
-        this.storeValue((parseInt(result) === NaN ? 0 : parseInt(result)), data.storage, data.varName, cache);
+
+        if(result !== undefined) {
+            this.storeValue((parseInt(result) === NaN ? 0 : parseInt(result)), data.storage, data.varName, cache);
+        }
         this.callNextAction(cache);
     },
 
