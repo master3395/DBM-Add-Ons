@@ -629,8 +629,8 @@ module.exports = {
 
 	action: function (cache) {
 		const data = cache.actions[cache.index];
-		const _this = this;//Just to be sure
-		const AddOns = this.getAddOns();//As always.
+		const _this = this;
+		const AddOns = this.getAddOns();
 		const request = AddOns.require('request');
 
 		const input = this.evalMessage(data.input, cache);//The inserted "ID" or "Name"
@@ -656,21 +656,21 @@ module.exports = {
 			case 3:
 				infoType = info4;
 				break;
-		};
+		}
 
 
 
 		//Check Input
-		if(!clientID) {return console.log('Please insert a client id!')};
-		if(!input) {return console.log('Please insert something to search for!')};
+		if(!clientID) return console.log('Please insert a client id!');
+		if(!input) return console.log('Please insert something to search for!');
 
 		if(searchResults > 0) {
 			if(searchResults > 100) {
 				searchResults = 100;//Max value
-			};
+			}
 		} else {//Default value
 			searchResults = 20;
-		};
+		}
 
 
 
@@ -684,15 +684,15 @@ module.exports = {
 						headers: {
 							'Client-ID': `${clientID}`
 						}
-					};
+					}
 				} else {
 					var options = {
 						url: `https://api.twitch.tv/helix/users/follows?to_id=${input}&first=2`,
 						headers: {
 							'Client-ID': `${clientID}`
 						}
-					};
-				};
+					}
+				}
 				request(options, function(error, response, body) {
 					if (!error && response.statusCode == 200) {
 					  	var info = JSON.parse(body);
@@ -731,7 +731,7 @@ module.exports = {
 					headers: {
 						'Client-ID': `${clientID}`
 					}
-				};
+				}
 				request(options, function(error, response, body) {
 					if(!error && response.statusCode == 200) {
 					  	var info = JSON.parse(body);
@@ -764,7 +764,7 @@ module.exports = {
 
 			} else {//Input Type: Undefined
 				return console.log('Please select either "User ID" or "User Login Name"!');
-			};
+			}
 
 		} else if(sourceType == 1) {//Source Info: Stream
 
@@ -774,7 +774,7 @@ module.exports = {
 				headers: {
 					'Client-ID': `${clientID}`
 				}
-			};
+			}
 			request(options, function (error, response, body) {
 				if(!error && response.statusCode == 200) {
 					var info = JSON.parse(body);
@@ -828,7 +828,7 @@ module.exports = {
 				headers: {
 					'Client-ID': `${clientID}`
 				}
-			};
+			}
 			request(options, function(error, response, body) {
 				if(!error && response.statusCode == 200) {
 					var info = JSON.parse(body);
