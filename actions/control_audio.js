@@ -40,7 +40,7 @@ short_description: "Control the bot's audio.",
 //---------------------------------------------------------------------
 
 subtitle: function(data) {
-	const actions = ["Stop Playing", "Pause Audio", "Resume Audio"];
+	const actions = ["Stop Audio", "Pause Audio", "Resume Audio", "Enable Loop Item", "Disable Loop Item", "Enable Loop Queue", "Disable Loop Queue", "Enable Shuffle Queue", "Disable Shuffle Queue", "Enable AutoPlay", "Disable AutoPlay"];
 	return `${actions[parseInt(data.action)]}`;
 },
 
