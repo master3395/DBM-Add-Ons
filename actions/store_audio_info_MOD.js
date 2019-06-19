@@ -40,7 +40,7 @@ short_description: "Store Informations about the current audio status of the bot
 //---------------------------------------------------------------------
 
 subtitle: function(data) {
-	const actions = ['Is Audio stopped?', 'Is Audio paused?', 'Is Audio playing?', 'Is Loop Item enabled?', 'Is Loop Queue enabled?', 'Is Loop Queue disabled?', 'Is Shuffle Queue disabled?', 'Is AutoPlay enabled?', 'Is AutoPlay disabled?', 'Queue Url List', 'Queue Data List', 'Queue List Length', 'AutoPlay URL List', 'AutoPlay Amount List', 'AutoPlay Data List', 'AutoPlay List Length'];
+	const actions = ['Is Audio stopped?', 'Is Audio paused?', 'Is Audio playing?', 'Is Loop Item enabled?', 'Is Loop Item disabled?', 'Is Loop Queue enabled?', 'Is Loop Queue disabled?', 'Is Shuffle Queue enabled?', 'Is Shuffle Queue disabled?', 'Is AutoPlay enabled?', 'Is AutoPlay disabled?', 'Queue Url List', 'Queue Data List', 'Queue List Length', 'AutoPlay URL List', 'AutoPlay Amount List', 'AutoPlay Data List', 'AutoPlay List Length'];
 	return `${actions[parseInt(data.action)]}`;
 },
 
